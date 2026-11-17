@@ -46,6 +46,31 @@ class EXPLORER_OT_TeleportToRoom(Operator):
         return {"FINISHED"}
 
 
+class EXPLORER_OT_SelectRoom(Operator):
+    """Select room to spawn in."""
+
+    bl_idname = "explorer.select_room"
+    bl_label = "Select Room"
+    bl_options = {"REGISTER", "UNDO"}
+
+    room_name: bpy.props.StringProperty(name="Room Name", default="")
+
+    def execute(self, context):
+        scene = context.scene
+
+        detector = room_picker.detect_rooms(scene)
+        room = detector.get_room(self.room_name)
+
+        if not room:
+            self.report({"ERROR"}, f"Room '{self.room_name}' not found")
+            return {"CANCELLED"}
+
+        # Store selected room in scene properties
+        scene.explorer.selected_room = self.room_name
+        self.report({"INFO"}, f"Selected room: {self.room_name}")
+        return {"FINISHED"}
+
+
 class EXPLORER_OT_ShowRooms(Operator):
     """Show list of available rooms."""
 

@@ -97,5 +97,8 @@ class ExplorerSettings(bpy.types.PropertyGroup):
     auto_refresh: BoolProperty(name="Auto Refresh Collision", default=True)
     auto_spawn: BoolProperty(name="Auto Spawn (grid-scan fallback)", default=True)
 
+    # ---- room picker
+    selected_room: StringProperty(name="Selected Room", default="")
+
 
 CLASSES = (ExplorerSettings,)

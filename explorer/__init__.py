@@ -87,6 +87,7 @@ def _classes():
             actions.EXPLORER_OT_SetInfo,
             actions.EXPLORER_OT_TestScene,
             actions.EXPLORER_OT_AutoSpawn,
+            room_picker_ops.EXPLORER_OT_SelectRoom,
             room_picker_ops.EXPLORER_OT_TeleportToRoom,
             room_picker_ops.EXPLORER_OT_ShowRooms,
         )

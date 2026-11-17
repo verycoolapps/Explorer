@@ -40,6 +40,33 @@ class EXPLORER_PT_Main(Panel):
         s = scene.explorer
         eng = engine_mod.ENGINE
 
+        # ---- room selector (before exploration)
+        if not eng.active:
+            box = layout.box()
+            box.label(text="Select Starting Room", icon="HOME")
+
+            try:
+                from ..navigation import room_picker
+                detector = room_picker.detect_rooms(scene)
+                rooms = detector.get_room_names()
+
+                if rooms:
+                    col = box.column(align=True)
+                    for room_name in rooms:
+                        is_selected = getattr(s, 'selected_room', '') == room_name
+                        col.operator(
+                            "explorer.select_room",
+                            text=f"{'✓ ' if is_selected else '  '}{room_name}",
+                            depress=is_selected
+                        ).room_name = room_name
+                else:
+                    box.label(text="No rooms detected", icon="ERROR")
+                    box.label(text="Create collections with objects")
+            except Exception:
+                box.label(text="Room detection unavailable", icon="ERROR")
+
+            layout.separator()
+
         # ---- start/stop
         row = layout.row()
         if eng.active:
