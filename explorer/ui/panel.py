@@ -111,34 +111,6 @@ class EXPLORER_PT_Main(Panel):
 
         layout.separator()
 
-        # ---- room picker
-        box = layout.box()
-        box.label(text="Room Navigation", icon="HOME")
-        box.operator("explorer.show_rooms", text="Refresh Rooms", icon="FILE_REFRESH")
-
-        # Get rooms list
-        from ..navigation import room_picker
-        detector = room_picker.detect_rooms(scene)
-        rooms = detector.get_room_names()
-
-        if rooms:
-            if eng.active:
-                col = box.column(align=True)
-                col.label(text="Teleport to:", icon="FORWARD")
-                for room_name in rooms:
-                    col.operator(
-                        "explorer.teleport_to_room",
-                        text=f"  → {room_name}",
-                    ).room_name = room_name
-            else:
-                col = box.column(align=False)
-                col.label(text=f"Available rooms ({len(rooms)})")
-                for room_name in rooms:
-                    col.label(text=f"  • {room_name}")
-                col.label(text="(Start exploration to navigate)", icon="INFO")
-        else:
-            box.label(text="No rooms detected", icon="ERROR")
-
         # ---- object marking
         box = layout.box()
         box.label(text="Object Marking", icon="OBJECT_DATA")
