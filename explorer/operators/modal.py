@@ -34,7 +34,7 @@ class EXPLORER_OT_Explore(Operator):
 
     bl_idname = "explorer.explore"
     bl_label = "Start Exploration"
-    bl_options = {"REGISTER", "GRAB_CURSOR", "BLOCKING"}
+    bl_options = {"REGISTER"}
 
     _timer = None
     _draw_handle = None
@@ -55,10 +55,24 @@ class EXPLORER_OT_Explore(Operator):
 
     def modal(self, context, event):
         eng = engine_mod.ENGINE
-        if eng.request_stop or not eng.active:
-            eng.finish(context)
+        try:
+            # stop check first for EVERY event type — never get stuck
+            if eng.request_stop or not eng.active:
+                try:
+                    eng.finish(context)
+                except Exception as e:
+                    print("EXPLORER finish error: %s" % e)
+                return {"FINISHED"}
+            eng.handle_event(event)
+        except Exception as e:
+            # never let an exception wedge the modal operator
+            print("EXPLORER modal error: %s" % e)
+            eng.request_stop = True
+            try:
+                eng.finish(context)
+            except Exception:
+                pass
             return {"FINISHED"}
-        eng.handle_event(event)
         return {"RUNNING_MODAL"}
 
     def execute(self, context):

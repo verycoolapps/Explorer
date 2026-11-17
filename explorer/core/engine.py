@@ -559,22 +559,42 @@ class ExplorerEngine:
                 self.rig.wheel_zoom(1.0)
             return True
 
+        # Keyboard events in modal operators arrive with event.type == key name
+        # (e.g. 'W', 'ESC', 'LEFT_SHIFT'); event.key is usually empty. Accept
+        # both 'KEYBOARD' (key stored in .key) and bare key-name types.
+        key = ""
         if et == "KEYBOARD":
-            key = event.key if hasattr(event, "key") else ""
+            key = getattr(event, "key", "") or getattr(event, "ascii", "") or ""
+        elif et and (len(et) == 1 or et in (
+            "ESC", "TAB", "SPACE", "RET", "NUMPAD_ENTER",
+            "UP", "DOWN", "LEFT", "RIGHT",
+            "LEFT_SHIFT", "RIGHT_SHIFT", "LEFT_CTRL", "RIGHT_CTRL",
+            "LEFT_ALT", "RIGHT_ALT",
+        )):
+            key = et
+        if key:
+            key = key.upper() if len(key) == 1 else key
+            # claim the event so Blender doesn't cancel the modal operator (ESC)
+            # or trigger default keymap actions while exploring
+            try:
+                event.prevent_default()
+            except Exception:
+                pass
+            val = getattr(event, "value", "PRESS") or "PRESS"
             # modifiers for run/crouch come as key events too
             if key in ("LEFT_SHIFT", "RIGHT_SHIFT"):
-                self._modifier("SHIFT", event.value == "PRESS")
+                self._modifier("SHIFT", val == "PRESS")
                 return True
             if key in ("LEFT_CTRL", "RIGHT_CTRL"):
-                if event.value == "PRESS" and self.settings.enable_crouch:
+                if val == "PRESS" and self.settings.enable_crouch:
                     self.player_state.crouching = not self.player_state.crouching
                 return True
             if key in ("W", "A", "S", "D", "UP", "DOWN", "LEFT", "RIGHT", "SPACE", "E", "C", "F", "TAB", "ESC", "RET", "NUMPAD_ENTER", "P"):
-                self._key_event(key, event.value)
+                self._key_event(key, val)
                 return True
-            # generic movement keys fallback
-            if key and len(key) == 1:
-                self._key_event(key.upper(), event.value)
+            # generic single-char keys (IJKL etc.) as movement fallback
+            if len(key) == 1:
+                self._key_event(key, val)
                 return True
             return True
 
