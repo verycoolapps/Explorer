@@ -83,38 +83,42 @@ class RoomDetector:
         self.detect_rooms()
 
     def detect_rooms(self):
-        """Detect rooms from scene collections."""
+        """Detect rooms from scene collections - super smart detection."""
         self.rooms.clear()
 
-        # Scan all collections recursively
-        self._scan_collections(self.scene.collection)
+        # Scan all collections recursively - DETECT EVERYTHING
+        self._scan_collections_smart(self.scene.collection)
 
-        # Also check objects with "room_" prefix at root level
+        # Fallback: Also check objects with "room_" prefix at root level
         for obj in self.scene.collection.objects:
             if obj.name.startswith("room_"):
                 room_name = obj.name[5:]
                 if room_name not in self.rooms:
                     self.rooms[room_name] = Room(room_name, [obj])
 
-    def _scan_collections(self, parent_collection: bpy.types.Collection):
-        """Recursively scan collections for rooms."""
+    def _scan_collections_smart(self, parent_collection: bpy.types.Collection):
+        """Recursively scan ALL collections - super smart detection."""
         for collection in parent_collection.children:
-            # Skip hidden/system collections
+            # Skip only hidden/system collections (starting with .)
             if collection.name.startswith("."):
                 continue
 
-            # Method 1: Collections with "Room." prefix
+            # Get all objects in this collection (recursive)
+            objects = self._get_collection_objects(collection)
+
+            # ADD EVERY COLLECTION - regardless of content
+            # Method 1: Priority - collections with "Room." prefix
             if collection.name.startswith("Room."):
                 room_name = collection.name[5:]
-                self._add_room_from_collection(room_name, collection)
-            # Method 2: Any other collection with objects (treat as potential room)
             else:
-                objects = self._get_collection_objects(collection)
-                if objects:  # Only add if has objects
-                    self._add_room_from_collection(collection.name, collection)
+                # Method 2: Any other collection name (use as-is)
+                room_name = collection.name
 
-            # Recurse into subcollections
-            self._scan_collections(collection)
+            # Add room even if empty - it's still a valid space
+            self.rooms[room_name] = Room(room_name, objects if objects else [], collection)
+
+            # Recurse into subcollections (nested rooms too)
+            self._scan_collections_smart(collection)
 
     def _add_room_from_collection(
         self, room_name: str, collection: bpy.types.Collection
