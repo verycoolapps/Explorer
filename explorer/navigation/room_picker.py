@@ -86,25 +86,35 @@ class RoomDetector:
         """Detect rooms from scene collections."""
         self.rooms.clear()
 
-        # Method 1: Collections with "Room." prefix
-        for collection in self.scene.collection.children:
-            if collection.name.startswith("Room."):
-                room_name = collection.name[5:]
-                self._add_room_from_collection(room_name, collection)
-            elif (
-                collection.name[0].isupper()
-                and not collection.name.startswith("Room")
-                and not collection.name.startswith(".")
-            ):
-                # Method 2: Capitalized collections
-                self._add_room_from_collection(collection.name, collection)
+        # Scan all collections recursively
+        self._scan_collections(self.scene.collection)
 
-        # Method 3: Objects with "room_" prefix
+        # Also check objects with "room_" prefix at root level
         for obj in self.scene.collection.objects:
             if obj.name.startswith("room_"):
                 room_name = obj.name[5:]
                 if room_name not in self.rooms:
                     self.rooms[room_name] = Room(room_name, [obj])
+
+    def _scan_collections(self, parent_collection: bpy.types.Collection):
+        """Recursively scan collections for rooms."""
+        for collection in parent_collection.children:
+            # Skip hidden/system collections
+            if collection.name.startswith("."):
+                continue
+
+            # Method 1: Collections with "Room." prefix
+            if collection.name.startswith("Room."):
+                room_name = collection.name[5:]
+                self._add_room_from_collection(room_name, collection)
+            # Method 2: Any other collection with objects (treat as potential room)
+            else:
+                objects = self._get_collection_objects(collection)
+                if objects:  # Only add if has objects
+                    self._add_room_from_collection(collection.name, collection)
+
+            # Recurse into subcollections
+            self._scan_collections(collection)
 
     def _add_room_from_collection(
         self, room_name: str, collection: bpy.types.Collection
