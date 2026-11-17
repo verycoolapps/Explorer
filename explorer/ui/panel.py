@@ -111,6 +111,31 @@ class EXPLORER_PT_Main(Panel):
 
         layout.separator()
 
+        # ---- room navigation (safe implementation)
+        box = layout.box()
+        box.label(text="Room Navigation", icon="HOME")
+
+        # Try to show rooms, but don't crash if unavailable
+        try:
+            from ..navigation import room_picker
+            detector = room_picker.detect_rooms(scene)
+            rooms = detector.get_room_names()
+
+            if rooms:
+                if eng.active:
+                    box.label(text="Teleport to:")
+                    for room_name in rooms:
+                        op = box.operator("explorer.teleport_to_room", text=f"  {room_name}")
+                        op.room_name = room_name
+                else:
+                    box.label(text=f"Available: {len(rooms)} rooms")
+            else:
+                box.label(text="Create Room.Name collections to see rooms")
+        except Exception as e:
+            box.label(text="Room feature unavailable", icon="ERROR")
+
+        layout.separator()
+
         # ---- object marking
         box = layout.box()
         box.label(text="Object Marking", icon="OBJECT_DATA")
