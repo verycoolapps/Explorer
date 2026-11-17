@@ -53,10 +53,11 @@ def _import_leaves():
     from .settings import props  # noqa: F401
     from .operators import actions  # noqa: F401
     from .operators import modal  # noqa: F401
+    from .operators import room_picker_ops  # noqa: F401
     from .ui import hud  # noqa: F401
     from .ui import panel  # noqa: F401
     from .core import collision, player, camera_rig, engine  # noqa: F401
-    from .navigation import location, teleport  # noqa: F401
+    from .navigation import location, teleport, room_picker  # noqa: F401
     from .interaction import interact  # noqa: F401
     from .tests import make_test_scene  # noqa: F401
 
@@ -69,7 +70,7 @@ def _classes():
     if _CLASSES is None:
         _import_leaves()
         from .settings import props
-        from .operators import actions, modal
+        from .operators import actions, modal, room_picker_ops
         from .ui import panel
 
         _CLASSES = (
@@ -86,6 +87,8 @@ def _classes():
             actions.EXPLORER_OT_SetInfo,
             actions.EXPLORER_OT_TestScene,
             actions.EXPLORER_OT_AutoSpawn,
+            room_picker_ops.EXPLORER_OT_TeleportToRoom,
+            room_picker_ops.EXPLORER_OT_ShowRooms,
         )
     return _CLASSES
 
