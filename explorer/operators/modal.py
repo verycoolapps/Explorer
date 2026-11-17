@@ -48,6 +48,21 @@ class EXPLORER_OT_Explore(Operator):
         if err:
             self.report({"ERROR"}, err)
             return {"CANCELLED"}
+
+        # Spawn in selected room if any
+        scene = context.scene
+        selected_room = getattr(scene.explorer, 'selected_room', '')
+        if selected_room:
+            try:
+                from ..navigation import room_picker
+                detector = room_picker.detect_rooms(scene)
+                room = detector.get_room(selected_room)
+                if room and eng.player and eng.player.entity:
+                    spawn_point = room.spawn_point(0.5)
+                    eng.player.entity.location = spawn_point
+            except Exception:
+                pass  # Silently fail, use default spawn
+
         eng.operator = self
         self._timer = eng._timer
         context.window_manager.modal_handler_add(self)
